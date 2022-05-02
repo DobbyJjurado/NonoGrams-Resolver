@@ -1,0 +1,4 @@
+int8 size
+Data[] data
+---
+bool solution
