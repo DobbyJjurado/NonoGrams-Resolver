@@ -6,6 +6,35 @@ import sys
 from nonogramsTableView import NonoGramsTable
 from nonogramsLineEdit import nonoGramsLineEdit
 
+class SecondWindow(QMainWindow):
+    dataSendSignal = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super(SecondWindow, self).__init__(parent)
+        self.__width = 300
+        self.__height = 450
+        self.configure()
+        self.initUI()
+
+    def configure(self):
+        self.setMaximumSize(self.__width, self.__height)
+        self.setMinimumSize(self.__width, self.__height)
+    
+    def initUI(self):
+        self.text_edit = QTextEdit(self)
+        self.text_edit.resize(self.__width,self.__height - 50)
+
+        self.update_button = QPushButton("Update", self)
+        self.update_button.move(int((self.__width - self.update_button.width()) / 2),
+                                self.__height - self.update_button.height())
+        self.update_button.clicked.connect(self.sendData)
+
+    def sendData(self):
+        self.dataSendSignal.emit(self.text_edit.toPlainText())
+        self.close()
+
+
+        
 
 class MainWindow(QWidget):
     
@@ -37,7 +66,6 @@ class MainWindow(QWidget):
         self.label_spin_size.move(int(self.frameGeometry().width()/2 - + self.label_spin_size.size().width()),
                                   self.spacing + 5)
 
-        # creating spin box
         self.spin_size = QSpinBox(self)
         self.spin_size.move(int(self.frameGeometry().width()/2 + self.label_spin_size.size().width() /2 + self.spacing),
                             self.spacing)
@@ -45,7 +73,6 @@ class MainWindow(QWidget):
         self.spin_size.setMinimum(1)
         self.spin_size.setMaximum(20)
 
-        # adding action to the spin box
         self.spin_size.valueChanged.connect(self.show_result)
     
         self.nonograms_view = NonoGramsTable(self, self.spin_size.value())
@@ -56,7 +83,29 @@ class MainWindow(QWidget):
                             int(self.height - self.spacing -self.button_send.height()/2))
         self.button_send.clicked.connect(self.sendDataToSolver)
 
+        self.fill_with_text = QPushButton("Fill with Text", self)
+        self.fill_with_text.move(self.button_send.x() + self.button_send.width(),
+                              self.button_send.y())
+        self.fill_with_text.clicked.connect(self.inputTextData)
+
+        self.window_input_data = SecondWindow(self)
+        self.window_input_data.dataSendSignal.connect(self.dataReceivedFromInputDataWindow)
+
         self.generateInputToNonograms()
+
+    def inputTextData(self):
+        self.window_input_data.show()
+
+    def dataReceivedFromInputDataWindow(self,string):
+        data = string.split("\n")
+        self.spin_size.setValue(int(data[0]))
+
+        counter = 0
+        for i in self.column_data:
+            i.setText(str(counter))
+            counter+=1
+
+
 
     def sendDataToSolver(self):
         self.data_to_send.clear()
@@ -107,7 +156,7 @@ class MainWindow(QWidget):
             line_edit = nonoGramsLineEdit(self, self.size, width = self.nonograms_view.minimun_size_table, height= 25)
             line_edit.move(x_center + (i * line_edit.width) , y_center - line_edit.height)
             line_edit.show()
-            self.column_data.append(line_edit)
+            self.row_data.append(line_edit)
 
 
         
