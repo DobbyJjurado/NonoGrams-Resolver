@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from PyQt5.QtWidgets import QApplication,QLineEdit,QWidget
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt

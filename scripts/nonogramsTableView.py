@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from PyQt5.QtWidgets import QAbstractItemView,QTableWidget,QTableWidgetItem
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import * 

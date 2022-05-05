@@ -30,6 +30,7 @@ public:
     void solve();
 
     friend std::ostream& operator<<(std::ostream& os, const NonogramSolver& dt);
+    
 private:
 
     bool checkIfDataIsCorrect(const std::vector<std::vector<int>>& nonogram_data);

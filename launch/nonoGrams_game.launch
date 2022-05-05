@@ -1,0 +1,5 @@
+<launch>
+    <node
+        pkg="nonograms_solver" name="mainGUI" type="mainGUI.py" output="screen">
+    </node>
+</launch>

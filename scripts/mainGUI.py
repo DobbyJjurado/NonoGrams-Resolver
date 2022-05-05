@@ -1,10 +1,20 @@
+#!/usr/bin/env python3
+
 # importing libraries
 from PyQt5.QtWidgets import * 
 from PyQt5.QtGui import * 
 from PyQt5.QtCore import * 
+import rospy
 import sys
 from nonogramsTableView import NonoGramsTable
 from nonogramsLineEdit import nonoGramsLineEdit
+from nonograms_solver.srv import Solution
+from std_msgs.msg import String
+
+
+def nextData(data: list) -> str:
+    for i in data:
+        yield i
 
 class SecondWindow(QMainWindow):
     dataSendSignal = pyqtSignal(str)
@@ -16,11 +26,12 @@ class SecondWindow(QMainWindow):
         self.configure()
         self.initUI()
 
-    def configure(self):
+    def configure(self) -> None:
         self.setMaximumSize(self.__width, self.__height)
         self.setMinimumSize(self.__width, self.__height)
     
-    def initUI(self):
+    def initUI(self) -> None:
+
         self.text_edit = QTextEdit(self)
         self.text_edit.resize(self.__width,self.__height - 50)
 
@@ -29,36 +40,41 @@ class SecondWindow(QMainWindow):
                                 self.__height - self.update_button.height())
         self.update_button.clicked.connect(self.sendData)
 
-    def sendData(self):
+    def sendData(self) -> None:
+
         self.dataSendSignal.emit(self.text_edit.toPlainText())
         self.close()
-
-
         
 
 class MainWindow(QWidget):
     
     def __init__(self):
         super().__init__()
-        
+        rospy.init_node('gui_node')
+
         self.spacing = 20
         self.size = 1
         self.column_data = []
         self.row_data = []
         self.data_to_send = []
-        self.initUI()
+        self.configure()
+        self.rosConfiguration()
+        self.UiComponents()
+        self.show()
+
+    def rosConfiguration(self):
+
+        self.srv_solver = rospy.ServiceProxy('solver', Solution)
+        self.sub_error = rospy.Subscriber("error", String, self.errorCallback)
         
-        
-    def initUI(self):
+    def configure(self):
         screen = QDesktopWidget().screenGeometry()
         self.width, self.height = screen.size().width() - 450, screen.size().height() - 150
         self.setMaximumSize(self.width, self.height)
         self.setMinimumSize(self.width, self.height)
         self.setWindowTitle('Nonograms Resolver App')
         self.setWindowIcon(QIcon('icon.png'))        
-        self.UiComponents()
-    
-        self.show()
+
 
     def UiComponents(self):
 
@@ -69,10 +85,8 @@ class MainWindow(QWidget):
         self.spin_size = QSpinBox(self)
         self.spin_size.move(int(self.frameGeometry().width()/2 + self.label_spin_size.size().width() /2 + self.spacing),
                             self.spacing)
-
         self.spin_size.setMinimum(1)
         self.spin_size.setMaximum(20)
-
         self.spin_size.valueChanged.connect(self.show_result)
     
         self.nonograms_view = NonoGramsTable(self, self.spin_size.value())
@@ -93,28 +107,36 @@ class MainWindow(QWidget):
 
         self.generateInputToNonograms()
 
-    def inputTextData(self):
+    def inputTextData(self) -> None:
         self.window_input_data.show()
 
-    def dataReceivedFromInputDataWindow(self,string):
+    def dataReceivedFromInputDataWindow(self,string)-> None:
+
         data = string.split("\n")
-        self.spin_size.setValue(int(data[0]))
+        generator = nextData(data)
+        self.spin_size.setValue(int(next(generator)))
 
-        counter = 0
+        for i in self.row_data:
+            i.setText(next(generator))
+
         for i in self.column_data:
-            i.setText(str(counter))
-            counter+=1
+            i.setText(next(generator))
 
+    def sendDataToSolver(self) -> None:
 
-
-    def sendDataToSolver(self):
         self.data_to_send.clear()
 
         self.data_to_send.append(self.size)
-        [self.data_to_send.append(i.data) for i in self.column_data]
-        [self.data_to_send.append(i.data) for i in self.row_data]
+        [self.data_to_send.append([int(x) for x in i.data] ) for i in self.row_data if len(i.data) != 0]
+        [self.data_to_send.append([int(x) for x in i.data] ) for i in self.column_data if len(i.data) != 0]
 
-        print(self.data_to_send)
+        total_length = self.size * 2 + 1
+        current_length = len(self.data_to_send)
+        if total_length == current_length:
+            print(self.data_to_send)
+            self.srv_solver(self.data_to_send)
+        else:
+            QMessageBox.about(self, "Error", "Missing Data.")
 
 
     def show_result(self)-> None:
@@ -126,12 +148,13 @@ class MainWindow(QWidget):
       
 
     def moveTableToCenter(self) -> None:
+
         center_point = self.rect().center()
         x_center  = center_point.x() - int((self.size * self.nonograms_view.minimun_size_table) / 2)
         y_center =  center_point.y() - int((self.size * self.nonograms_view.minimun_size_table) / 2)
         self.nonograms_view.move(x_center, y_center)
                                 
-    def generateInputToNonograms(self):
+    def generateInputToNonograms(self) -> None:
 
         if self.column_data: 
             [column.deleteLater() for column in self.column_data]
@@ -158,11 +181,11 @@ class MainWindow(QWidget):
             line_edit.show()
             self.row_data.append(line_edit)
 
-
-        
+    def errorCallback(self, msg: String):
+        QMessageBox.about(self, "Error", msg.data)
+ 
         
 if __name__ == '__main__':
-    
     app = QApplication(sys.argv)
     ex = MainWindow()
     sys.exit(app.exec_()) 

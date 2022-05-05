@@ -69,7 +69,7 @@ NonogramSolver::NonogramSolver(const std::vector<std::vector<int>>& nonogram_dat
 bool NonogramSolver::checkIfDataIsCorrect(const std::vector<std::vector<int>>& nonogram_data)
 {
     int total_length_vector = size_n_*2 + 1;
-    std::cout << total_length_vector << " " << nonogram_data.size() << std::endl;
+    //std::cout << total_length_vector << " " << nonogram_data.size() << std::endl;
     if( total_length_vector == nonogram_data.size() )
     {
         int counter {};
@@ -90,7 +90,8 @@ bool NonogramSolver::checkIfDataIsCorrect(const std::vector<std::vector<int>>& n
 }
 
 void NonogramSolver::solve()
-{
+{ 
+    //UnderConstruction TODO
     int row_index = {};
     int column_index = {};
     std::vector<int> data_to_check;
@@ -215,10 +216,10 @@ std::vector<int> NonogramSolver::estimatePermutations(const std::vector<int> &da
 
         final_permutation = math::sumAllColumnsMatrix(all_permutations_);
 
-        printVector(final_permutation);
+        /*printVector(final_permutation);
         std::cout << "Tranformation " << std::endl;
         tranformPermutation(final_permutation);
-        printVector(final_permutation);
+        printVector(final_permutation);*/
     }
     return final_permutation;
 }

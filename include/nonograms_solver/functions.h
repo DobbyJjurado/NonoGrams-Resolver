@@ -52,12 +52,8 @@ namespace math
         }
 
         return columns;
-
     }
-
 }
-
-
 
 
 #endif // FUNCTIONS_H
