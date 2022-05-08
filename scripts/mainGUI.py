@@ -124,7 +124,10 @@ class MainWindow(QWidget):
 
     def sendDataToSolver(self) -> None:
 
-        self.data_to_send.clear()
+        QMessageBox.about(self, "Error", "Under Construction.")
+        return
+
+        '''self.data_to_send.clear()
 
         self.data_to_send.append(self.size)
         [self.data_to_send.append([int(x) for x in i.data] ) for i in self.row_data if len(i.data) != 0]
@@ -136,7 +139,7 @@ class MainWindow(QWidget):
             print(self.data_to_send)
             self.srv_solver(self.data_to_send)
         else:
-            QMessageBox.about(self, "Error", "Missing Data.")
+            QMessageBox.about(self, "Error", "Missing Data.")'''
 
 
     def show_result(self)-> None:
